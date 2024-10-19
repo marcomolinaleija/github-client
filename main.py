@@ -1,4 +1,5 @@
 import wx
+import os
 from repo_list import RepoListDialog
 from actions import GithubActions
 
@@ -19,7 +20,6 @@ class MainFrame(wx.Frame):
 		
 		self.Bind(wx.EVT_MENU, self.on_list_repos, list_repos_item)
 		self.Bind(wx.EVT_MENU, self.on_create_repo, create_repo_item)
-		self.Bind(wx.EVT_CHAR_HOOK, self.on_key_down)
 		
 	def init_github_api(self):
 		self.api = GithubActions()
@@ -49,11 +49,15 @@ class MainFrame(wx.Frame):
 		except Exception as e:
 			wx.MessageBox(str(e), "Error", wx.OK | wx.ICON_ERROR)
 			
-	def on_key_down(self, event):
-		event.Skip()  # No es necesario manejar la tecla Escape aquí
-
 class MyApp(wx.App):
 	def OnInit(self):
+		# Verifica si ya hay otra instancia corriendo
+		self.instance_checker = wx.SingleInstanceChecker("GithubClientLock")
+		
+		if self.instance_checker.IsAnotherRunning():
+			wx.MessageBox("Ya hay una instancia de github client en ejecución.", "Error", wx.OK | wx.ICON_ERROR)
+			return False  # Termina la aplicación si ya hay otra instancia
+		
 		frame = MainFrame(None, "GitHub client")
 		frame.Show(True)
 		return True
